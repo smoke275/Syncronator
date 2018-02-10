@@ -1,0 +1,26 @@
+{
+  "name":"root",
+  "files":[{
+    "name":"abc",
+    "location":"////"
+  }],
+  "folders":[{
+    "name":"folder1",
+    "files":[{
+      "name":"abc",
+      "location":"////"
+    }],
+    "folders":[{
+      "name":"folder11"
+    }]
+  },
+    {
+      "files":[{
+        "name":"abc",
+        "location":"////"
+      }],
+      "folders":[{
+        "name":"folder12"
+      }]
+    }]
+}
