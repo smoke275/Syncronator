@@ -11,7 +11,9 @@
       "location":"////"
     }],
     "folders":[{
-      "name":"folder11"
+      "name":"folder11",
+      "files":[],
+      "folders":[]
     }]
   },
     {
@@ -20,7 +22,9 @@
         "location":"////"
       }],
       "folders":[{
-        "name":"folder12"
+        "name":"folder12",
+        "files":[],
+        "folders":[]
       }]
     }]
 }

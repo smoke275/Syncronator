@@ -13,6 +13,9 @@ public class File extends JLabel {
     public static File getNewInstance() {
         return new File();
     }
+    public static File getNewInstance(String name) {
+        return new File(name);
+    }
 
     private static BufferedImage getImageIcon() {
         if (imageIcon == null) {
@@ -28,9 +31,12 @@ public class File extends JLabel {
         return imageIcon;
     }
 
-    private File() {
+    private File(){
+        this("File");
+    }
+    private File(String name) {
         super(new ImageIcon(getImageIcon()));
-        setText("File");
+        setText(name);
         setVerticalTextPosition(BOTTOM);
         setHorizontalTextPosition(CENTER);
     }
