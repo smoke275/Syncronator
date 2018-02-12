@@ -7,6 +7,9 @@ import com.google.gson.GsonBuilder;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -22,12 +25,13 @@ import static java.awt.EventQueue.invokeLater;
 /**
  * File explorer class creates basic view of the filesystem
  */
-public class FileExplorer extends JFrame{
+public class FileExplorer extends JFrame {
 
     private static FileExplorer fileExplorer;
     private  JScrollPane scrollPane;
     private JPanel jPanel;
     private JMenuBar jMenuBar;
+    private DropTarget dropTarget;
     private Stack<persistence.Folder> navigationStack = null;
 
     private static FileExplorer getInstance(){
@@ -62,13 +66,11 @@ public class FileExplorer extends JFrame{
         if(!folderView.getName().equals(Folder.ROOT)){
             Folder folderTemp = Folder.getNewInstance(Folder.NAVIGATE_UP);
             folderTemp.addMouseListener(new MouseAdapter() {
-                public persistence.Folder state = folderView;
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
                         navigationStack.pop();
-                        drawWith(navigationStack.peek());
-                        System.out.println(navigationStack.peek().getName());
+                        drawWith(navigationStack.pop());
                     }
                 }
             });
@@ -96,6 +98,41 @@ public class FileExplorer extends JFrame{
     }
 
     private void setConfigurations(){
+        dropTarget = new DropTarget(this, new DropTargetListener() {
+            public void dragEnter(DropTargetDragEvent dtde) { }
+
+            public void dragExit(DropTargetEvent dte) { }
+
+            public void dragOver(DropTargetDragEvent dtde) { }
+
+            public void dropActionChanged(DropTargetDragEvent dtde) { }
+
+            @Override
+            public void drop(DropTargetDropEvent dtde) {
+                try {
+                    Transferable tr = dtde.getTransferable();
+                    DataFlavor[] flavors = tr.getTransferDataFlavors();
+                    for (int i = 0; i < flavors.length; i++) {
+                        System.out.println("Possible flavor: " + flavors[i].getMimeType());
+                        if (flavors[i].isFlavorJavaFileListType()) {
+                            dtde.acceptDrop(DnDConstants.ACTION_COPY);
+
+                            java.util.List list = (java.util.List) tr.getTransferData(flavors[i]);
+                            for (int j = 0; j < list.size(); j++) {
+                                System.out.println(list.get(j));
+                            }
+                            dtde.dropComplete(true);
+                            return;
+                        }
+                    }
+                    System.out.println("Drop failed: " + dtde);
+                    dtde.rejectDrop();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    dtde.rejectDrop();
+                }
+            }
+        });
         this.setSize(1000,500);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
@@ -107,7 +144,7 @@ public class FileExplorer extends JFrame{
     private JScrollPane getScrollablePanel(JPanel jPanel){
         if(scrollPane == null)
             scrollPane = new JScrollPane(jPanel,
-                    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                    JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                     JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         return scrollPane;
     }

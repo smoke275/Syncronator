@@ -8,7 +8,7 @@ import java.net.URL;
 
 public class Folder extends JLabel {
     public final static String ROOT = "root";
-    public final static String NAVIGATE_UP = "Go back";
+    public final static String NAVIGATE_UP = "\u21A9";
     private static BufferedImage imageIcon;
     private persistence.Folder folderStructure = null;
     public static Folder getNewInstance() {
