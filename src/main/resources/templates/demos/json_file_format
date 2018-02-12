@@ -1,28 +1,29 @@
 {
   "name":"root",
   "files":[{
-    "name":"abc",
+    "name":"file_level1",
     "location":"////"
   }],
   "folders":[{
-    "name":"folder1",
+    "name":"folder_level1",
     "files":[{
-      "name":"abc",
+      "name":"file_level2_1",
       "location":"////"
     }],
     "folders":[{
-      "name":"folder11",
+      "name":"folder_level2_1",
       "files":[],
       "folders":[]
     }]
   },
     {
+      "name":"folder_level2",
       "files":[{
-        "name":"abc",
+        "name":"file_level2_2",
         "location":"////"
       }],
       "folders":[{
-        "name":"folder12",
+        "name":"folder_level2_2",
         "files":[],
         "folders":[]
       }]

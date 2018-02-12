@@ -1,6 +1,7 @@
 package views;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,9 +15,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Stack;
 
@@ -51,7 +54,6 @@ public class FileExplorer extends JFrame {
         navigationStack = new Stack<>();
         persistence.Folder rootFolderView = readFileView();
         drawWith(rootFolderView);
-
 
         getScrollablePanel(jPanel);
         this.setJMenuBar(getExplorerMenuBar());
@@ -168,18 +170,54 @@ public class FileExplorer extends JFrame {
 
         if(jMenuBar==null){
             jMenuBar = new JMenuBar();
-            //ImageIcon icon = new ImageIcon("exit.png");
 
-            JMenu file = new JMenu("File");
+            Locale locale = new Locale("en", "US");
+            ResourceBundle labels = ResourceBundle.getBundle("strings/string", locale);
+
+            JMenu file = new JMenu(labels.getString("menu_item1"));
             file.setMnemonic(KeyEvent.VK_F);
 
-            JMenuItem eMenuItem = new JMenuItem("Exit");
+            JMenuItem eMenuItem = new JMenuItem(labels.getString("submenu_item1"));
             eMenuItem.setMnemonic(KeyEvent.VK_E);
-            eMenuItem.setToolTipText("Exit application");
+            eMenuItem.setToolTipText(labels.getString("submenu_item1_tooltip"));
             eMenuItem.addActionListener((ActionEvent event) -> {
                 System.exit(0);
             });
 
+            JMenuItem dDriveLocation = new JMenuItem(labels.getString("submenu_item2"));
+            dDriveLocation.setMnemonic(KeyEvent.VK_D);
+            dDriveLocation.setToolTipText(labels.getString("submenu_item2_tooltip"));
+            dDriveLocation.addActionListener((ActionEvent event) -> {
+                Properties appProps = new Properties();
+                URL url = FileExplorer.class.getResource("/properties/editable.properties");
+                try {
+                    appProps.load(url.openStream());
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String result = JOptionPane.showInputDialog(this, labels.getString("option_pane_message"),
+                        appProps.getProperty("drive_location",""));
+                if(!Strings.isNullOrEmpty(result))
+                    appProps.setProperty("drive_location",result);
+                try {
+                    appProps.store(new FileWriter(url.getPath()), labels.getString("comment_properties_file"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            JMenuItem nNewFolder = new JMenuItem(labels.getString("submenu_item3"));
+            nNewFolder.setMnemonic(KeyEvent.VK_N);
+            nNewFolder.setToolTipText(labels.getString("submenu_item3_tooltip"));
+            nNewFolder.addActionListener((ActionEvent event) -> {
+                String result = JOptionPane.showInputDialog(this, labels.getString("new_folder_option_pane_message"),
+                        labels.getString("new_folder"));
+                //navigationStack.peek().getFolders().add(null);
+            });
+
+            file.add(nNewFolder);
+            file.add(dDriveLocation);
             file.add(eMenuItem);
 
             jMenuBar.add(file);
