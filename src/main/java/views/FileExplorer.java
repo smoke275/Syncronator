@@ -2,9 +2,13 @@ package views;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.io.CharSink;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import persistence.Folder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,13 +19,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Stack;
+import java.nio.charset.Charset;
+import java.util.*;
 
 import static java.awt.EventQueue.invokeLater;
 
@@ -35,6 +36,7 @@ public class FileExplorer extends JFrame {
     private JPanel jPanel;
     private JMenuBar jMenuBar;
     private DropTarget dropTarget;
+    private Folder rootFolderView;
     private Stack<persistence.Folder> navigationStack = null;
 
     private static FileExplorer getInstance(){
@@ -52,7 +54,7 @@ public class FileExplorer extends JFrame {
 
     private void initUI() {
         navigationStack = new Stack<>();
-        persistence.Folder rootFolderView = readFileView();
+        rootFolderView = readFileView();
         drawWith(rootFolderView);
 
         getScrollablePanel(jPanel);
@@ -213,7 +215,18 @@ public class FileExplorer extends JFrame {
             nNewFolder.addActionListener((ActionEvent event) -> {
                 String result = JOptionPane.showInputDialog(this, labels.getString("new_folder_option_pane_message"),
                         labels.getString("new_folder"));
-                //navigationStack.peek().getFolders().add(null);
+                if (!Strings.isNullOrEmpty(result)){
+                    Folder folder = new Folder();
+                    folder.setName(result);
+                    folder.setFiles(new LinkedList<>());
+                    folder.setFolders(new LinkedList<>());
+                    Folder source = navigationStack.pop();
+                    source.getFolders().add(folder);
+                    invokeLater(() -> {
+                        drawWith(source);
+                        saveFileView(source);
+                    });
+                }
             });
 
             file.add(nNewFolder);
@@ -225,8 +238,7 @@ public class FileExplorer extends JFrame {
         return jMenuBar;
     }
 
-    public static persistence.Folder readFileView(){
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    public static Folder readFileView(){
         URL url = FolderView.class.getResource("/file_system/file_view");
         // read JSON file data as String
         String fileData = null;
@@ -237,7 +249,42 @@ public class FileExplorer extends JFrame {
         }
 
         // parse json string to object
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+        // parse json string to object
         persistence.Folder folderTree = gson.fromJson(fileData, persistence.Folder.class);
         return folderTree;
+    }
+
+    public static Boolean saveFileView(Folder folder){
+        URL url = FolderView.class.getResource("/file_system/file_view");
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String jsonInString = gson.toJson(folder);
+
+        Reader initialReader = new StringReader(jsonInString);
+
+        File targetFile = new File(url.getPath());
+        try {
+            com.google.common.io.Files.touch(targetFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        CharSink charSink = com.google.common.io.Files.
+                asCharSink(targetFile, Charset.defaultCharset());
+        try {
+            charSink.writeFrom(initialReader);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        try {
+            initialReader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

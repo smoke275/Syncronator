@@ -5,27 +5,27 @@
     "location":"////"
   }],
   "folders":[{
-        "name":"folder_level1",
-        "files":[{
-          "name":"file_level2_1",
-          "location":"////"
-        }],
-        "folders":[{
-              "name":"folder_level2_1",
-              "files":[],
-              "folders":[]
-            }]
-      },
-        {
-          "name":"folder_level2",
-          "files":[{
-            "name":"file_level2_2",
-            "location":"////"
-          }],
-          "folders":[{
-            "name":"folder_level2_2",
-            "files":[],
-            "folders":[]
-          }]
-        }]
+    "name":"folder_level1",
+    "files":[{
+      "name":"file_level2_1",
+      "location":"////"
+    }],
+    "folders":[{
+      "name":"folder_level2_1",
+      "files":[],
+      "folders":[]
+    }]
+  },
+    {
+      "name":"folder_level2",
+      "files":[{
+        "name":"file_level2_2",
+        "location":"////"
+      }],
+      "folders":[{
+        "name":"folder_level2_2",
+        "files":[],
+        "folders":[]
+      }]
+    }]
 }
