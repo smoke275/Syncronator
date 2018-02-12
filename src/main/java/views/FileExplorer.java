@@ -26,7 +26,7 @@ import java.util.Stack;
 import static java.awt.EventQueue.invokeLater;
 
 /**
- * File explorer class creates basic view of the filesystem
+ * FileView explorer class creates basic view of the filesystem
  */
 public class FileExplorer extends JFrame {
 
@@ -65,9 +65,9 @@ public class FileExplorer extends JFrame {
     private void drawWith(persistence.Folder folderView){
         navigationStack.push(folderView);
         getMainPanel().removeAll();
-        if(!folderView.getName().equals(Folder.ROOT)){
-            Folder folderTemp = Folder.getNewInstance(Folder.NAVIGATE_UP);
-            folderTemp.addMouseListener(new MouseAdapter() {
+        if(!folderView.getName().equals(FolderView.ROOT)){
+            FolderView folderViewTemp = FolderView.getNewInstance(FolderView.NAVIGATE_UP);
+            folderViewTemp.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
@@ -76,11 +76,11 @@ public class FileExplorer extends JFrame {
                     }
                 }
             });
-            getMainPanel().add(folderTemp);
+            getMainPanel().add(folderViewTemp);
         }
         for(persistence.Folder folder:folderView.getFolders()){
-            Folder folderTemp = Folder.getNewInstance(folder.getName());
-            folderTemp.addMouseListener(new MouseAdapter() {
+            FolderView folderViewTemp = FolderView.getNewInstance(folder.getName());
+            folderViewTemp.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
@@ -88,11 +88,11 @@ public class FileExplorer extends JFrame {
                     }
                 }
             });
-            getMainPanel().add(folderTemp);
+            getMainPanel().add(folderViewTemp);
         }
 
         for(persistence.File file:folderView.getFiles()){
-            getMainPanel().add(File.getNewInstance(file.getName()));
+            getMainPanel().add(FileView.getNewInstance(file.getName()));
         }
         getMainPanel().revalidate();
         getMainPanel().repaint();
@@ -227,7 +227,7 @@ public class FileExplorer extends JFrame {
 
     public static persistence.Folder readFileView(){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        URL url = Folder.class.getResource("/file_system/file_view");
+        URL url = FolderView.class.getResource("/file_system/file_view");
         // read JSON file data as String
         String fileData = null;
         try {
