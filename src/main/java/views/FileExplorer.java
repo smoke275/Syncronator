@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import persistence.Folder;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -18,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -43,12 +45,30 @@ public class FileExplorer extends JFrame {
             Locale locale = new Locale("en", "US");
             ResourceBundle labels = ResourceBundle.getBundle("strings/string", locale);
             fileExplorer = new FileExplorer(labels.getString("app_name"));
+            URL url = FileExplorer.class.getResource("/images/syncronator_icon.png");
+            BufferedImage imageIcon = null;
+            try {
+                imageIcon = ImageIO.read(url);
+                fileExplorer.setIconImage(imageIcon);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
         return fileExplorer;
     }
 
     private FileExplorer(String title){
         super(title);
+    }
+
+    public static void invokeFileManager(){
+            invokeLater(() -> {
+                FileExplorer.getInstance().initUI();
+            });
+
+
+
     }
 
     public void initUI() {
@@ -185,7 +205,7 @@ public class FileExplorer extends JFrame {
         this.setSize(1000,500);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.getContentPane().setLayout(new BorderLayout());
         this.setResizable(false);
     }
@@ -222,7 +242,7 @@ public class FileExplorer extends JFrame {
             eMenuItem.setMnemonic(KeyEvent.VK_E);
             eMenuItem.setToolTipText(labels.getString("submenu_item1_tooltip"));
             eMenuItem.addActionListener((ActionEvent event) -> {
-                System.exit(0);
+                this.dispose();
             });
 
             JMenuItem dDriveLocation = new JMenuItem(labels.getString("submenu_item2"));

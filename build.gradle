@@ -22,8 +22,7 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/commons-io/commons-io
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+    compile group: 'commons-daemon', name: 'commons-daemon', version: '1.1.0'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
     compile group: 'commons-io', name: 'commons-io', version: '2.4'
     compile 'com.google.guava:guava:24.0-jre'
