@@ -3,11 +3,10 @@ package views;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.io.CharSink;
-import com.google.common.io.FileWriteMode;
+import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
 import persistence.Folder;
 
 import javax.swing.*;
@@ -117,14 +116,52 @@ public class FileExplorer extends JFrame {
                     Transferable tr = dtde.getTransferable();
                     DataFlavor[] flavors = tr.getTransferDataFlavors();
                     for (int i = 0; i < flavors.length; i++) {
-                        System.out.println("Possible flavor: " + flavors[i].getMimeType());
+                        //System.out.println("Possible flavor: " + flavors[i].getMimeType());
                         if (flavors[i].isFlavorJavaFileListType()) {
                             dtde.acceptDrop(DnDConstants.ACTION_COPY);
 
                             java.util.List list = (java.util.List) tr.getTransferData(flavors[i]);
-                            for (int j = 0; j < list.size(); j++) {
-                                System.out.println(list.get(j));
+
+                            Properties appProps = new Properties();
+                            URL url = FileExplorer.class.getResource("/properties/editable.properties");
+                            try {
+                                appProps.load(url.openStream());
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
+                            StringBuilder directoryName = new StringBuilder();
+                            directoryName.append(appProps.getProperty("drive_location",""));
+                            ListIterator<Folder> namesIterator = navigationStack.listIterator();
+
+                            // Traversing elements
+                            while(namesIterator.hasNext()){
+                                String folder_name = namesIterator.next().getName();
+                                if(!folder_name.equals(FolderView.ROOT))
+                                    directoryName.append("\\"+folder_name);
+                            }
+
+                            for (int j = 0; j < list.size(); j++) {
+                                persistence.File file = new persistence.File();
+                                final File fileSource = (File)list.get(i);
+                                file.setName(fileSource.getName());
+                                file.setLocation(directoryName+
+                                        "\\"+fileSource.getName());
+                                final File fileDestination = new File(file.getLocation());
+                                Folder source = navigationStack.pop();
+                                invokeLater(() -> {
+                                    source.getFiles().add(file);
+                                    drawWith(source);
+                                    try {
+                                        Files.copy(fileSource,fileDestination);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                });
+
+
+                            }
+
                             dtde.dropComplete(true);
                             return;
                         }
@@ -220,11 +257,39 @@ public class FileExplorer extends JFrame {
                     folder.setName(result);
                     folder.setFiles(new LinkedList<>());
                     folder.setFolders(new LinkedList<>());
+                    StringBuilder directoryName = new StringBuilder();
+
+                    Properties appProps = new Properties();
+                    URL url = FileExplorer.class.getResource("/properties/editable.properties");
+                    try {
+                        appProps.load(url.openStream());
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    directoryName.append(appProps.getProperty("drive_location",""));
+                    ListIterator<Folder> namesIterator = navigationStack.listIterator();
+
+                    // Traversing elements
+                    while(namesIterator.hasNext()){
+                        String folder_name = namesIterator.next().getName();
+                        if(!folder_name.equals(FolderView.ROOT))
+                            directoryName.append("\\"+folder_name);
+                    }
+
+                    directoryName.append("\\"+result+"\\dummyFile.txt");
+
                     Folder source = navigationStack.pop();
                     source.getFolders().add(folder);
                     invokeLater(() -> {
                         drawWith(source);
                         saveFileView(source);
+                        try {
+                            Files.createParentDirs(new File(directoryName.toString()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     });
                 }
             });
