@@ -38,7 +38,7 @@ public class FileExplorer extends JFrame {
     private Folder rootFolderView;
     private Stack<persistence.Folder> navigationStack = null;
 
-    private static FileExplorer getInstance(){
+    public static FileExplorer getInstance(){
         if(fileExplorer == null) {
             Locale locale = new Locale("en", "US");
             ResourceBundle labels = ResourceBundle.getBundle("strings/string", locale);
@@ -51,7 +51,11 @@ public class FileExplorer extends JFrame {
         super(title);
     }
 
-    private void initUI() {
+    public void initUI() {
+        getContentPane().removeAll();
+        getContentPane().revalidate();
+        getContentPane().repaint();
+
         navigationStack = new Stack<>();
         rootFolderView = readFileView();
         drawWith(rootFolderView);
@@ -61,6 +65,10 @@ public class FileExplorer extends JFrame {
         this.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         setConfigurations();
+
+        getContentPane().revalidate();
+        getContentPane().repaint();
+
     }
 
     private void drawWith(persistence.Folder folderView){
@@ -198,12 +206,6 @@ public class FileExplorer extends JFrame {
         return jPanel;
     }
 
-    public static void main(String args[]){
-        invokeLater(() -> {
-            FileExplorer.getInstance().initUI();
-        });
-    }
-
 
     private JMenuBar getExplorerMenuBar() {
 
@@ -237,12 +239,27 @@ public class FileExplorer extends JFrame {
                 }
                 String result = JOptionPane.showInputDialog(this, labels.getString("option_pane_message"),
                         appProps.getProperty("drive_location",""));
-                if(!Strings.isNullOrEmpty(result))
-                    appProps.setProperty("drive_location",result);
-                try {
-                    appProps.store(new FileWriter(url.getPath()), labels.getString("comment_properties_file"));
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if(!Strings.isNullOrEmpty(result) &&
+                        new File(result).isDirectory()){
+                    if(!appProps.getProperty("drive_location","")
+                            .equals(result)){ // the input is actually different
+                        appProps.setProperty("drive_location",result);
+                        try {
+                            appProps.store(new FileWriter(url.getPath()), labels.getString("comment_properties_file"));
+                            URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
+                            URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
+                            Files.move(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
+                            invokeLater(() -> {
+                                FileExplorer.getInstance().initUI();
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                else{
+                    JOptionPane.showMessageDialog(this,labels.getString("error_msg_wrong_directory"),
+                            labels.getString("error_title_wrong_directory"), JOptionPane.ERROR_MESSAGE);
                 }
             });
 
