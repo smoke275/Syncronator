@@ -12,6 +12,7 @@ buildscript {
 group 'smdist'
 version '1.0-SNAPSHOT'
 
+apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'kotlin'
 
@@ -20,6 +21,8 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
 }
+
+mainClassName = 'com.syncro.Main'
 
 dependencies {
     compile group: 'commons-daemon', name: 'commons-daemon', version: '1.1.0'

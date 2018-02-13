@@ -1,4 +1,4 @@
-package views;
+package com.syncro.views;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -10,7 +10,7 @@ public class FolderView extends JLabel {
     public final static String ROOT = "root";
     public final static String NAVIGATE_UP = "\u21A9";
     private static BufferedImage imageIcon;
-    private persistence.Folder folderStructure = null;
+    private com.syncro.persistence.Folder folderStructure = null;
     public static FolderView getNewInstance() {
         return new FolderView();
     }
@@ -18,7 +18,7 @@ public class FolderView extends JLabel {
     public static FolderView getNewInstance(String name) {
         return new FolderView(name);
     }
-    public static FolderView getNewInstance(String name, persistence.Folder folderStructure) {
+    public static FolderView getNewInstance(String name, com.syncro.persistence.Folder folderStructure) {
         return new FolderView(name, folderStructure);
     }
 
@@ -41,7 +41,7 @@ public class FolderView extends JLabel {
     private FolderView(String name) {
         this(name, null);
     }
-    private FolderView(String name, persistence.Folder folderStructure) {
+    private FolderView(String name, com.syncro.persistence.Folder folderStructure) {
         super(new ImageIcon(getImageIcon()));
         this.folderStructure = folderStructure;
         setText(name);

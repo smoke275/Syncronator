@@ -1,4 +1,4 @@
-package views;
+package com.syncro.views;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -7,7 +7,7 @@ import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import persistence.Folder;
+import com.syncro.persistence.Folder;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -38,7 +38,7 @@ public class FileExplorer extends JFrame {
     private JMenuBar jMenuBar;
     private DropTarget dropTarget;
     private Folder rootFolderView;
-    private Stack<persistence.Folder> navigationStack = null;
+    private Stack<com.syncro.persistence.Folder> navigationStack = null;
 
     public static FileExplorer getInstance(){
         if(fileExplorer == null) {
@@ -89,9 +89,54 @@ public class FileExplorer extends JFrame {
         getContentPane().revalidate();
         getContentPane().repaint();
 
+        if(!isDataValid()){
+            Locale locale = new Locale("en", "US");
+            ResourceBundle labels = ResourceBundle.getBundle("strings/string", locale);
+            JOptionPane.showMessageDialog(this,labels.getString("error_msg_wrong_directory"),
+                    labels.getString("error_title_wrong_directory"), JOptionPane.ERROR_MESSAGE);
+            String result = JOptionPane.showInputDialog(this,
+                    labels.getString("option_pane_entry_message_for_setting_dir"));
+            Properties appProps = new Properties();
+            URL url = FileExplorer.class.getResource("/properties/editable.properties");
+            try {
+                appProps.load(url.openStream());
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            appProps.setProperty("drive_location",result);
+            try {
+                appProps.store(new FileWriter(url.getPath()), labels.getString("comment_properties_file"));
+                URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
+                URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
+                Files.move(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            invokeLater(() -> {
+                FileExplorer.getInstance().initUI();
+            });
+        }
     }
 
-    private void drawWith(persistence.Folder folderView){
+
+    private boolean isDataValid(){
+        Properties appProps = new Properties();
+        URL url = FileExplorer.class.getResource("/properties/editable.properties");
+        try {
+            appProps.load(url.openStream());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(new File(appProps.getProperty("drive_location","")).isDirectory())
+            return true;
+        else
+            return false;
+
+    }
+
+    private void drawWith(com.syncro.persistence.Folder folderView){
         navigationStack.push(folderView);
         getMainPanel().removeAll();
         if(!folderView.getName().equals(FolderView.ROOT)){
@@ -107,7 +152,7 @@ public class FileExplorer extends JFrame {
             });
             getMainPanel().add(folderViewTemp);
         }
-        for(persistence.Folder folder:folderView.getFolders()){
+        for(com.syncro.persistence.Folder folder:folderView.getFolders()){
             FolderView folderViewTemp = FolderView.getNewInstance(folder.getName());
             folderViewTemp.addMouseListener(new MouseAdapter() {
                 @Override
@@ -120,7 +165,7 @@ public class FileExplorer extends JFrame {
             getMainPanel().add(folderViewTemp);
         }
 
-        for(persistence.File file:folderView.getFiles()){
+        for(com.syncro.persistence.File file:folderView.getFiles()){
             getMainPanel().add(FileView.getNewInstance(file.getName()));
         }
         getMainPanel().revalidate();
@@ -170,7 +215,7 @@ public class FileExplorer extends JFrame {
                             }
 
                             for (int j = 0; j < list.size(); j++) {
-                                persistence.File file = new persistence.File();
+                                com.syncro.persistence.File file = new com.syncro.persistence.File();
                                 final File fileSource = (File)list.get(i);
                                 file.setName(fileSource.getName());
                                 file.setLocation(directoryName+
@@ -354,7 +399,7 @@ public class FileExplorer extends JFrame {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         // parse json string to object
-        persistence.Folder folderTree = gson.fromJson(fileData, persistence.Folder.class);
+        com.syncro.persistence.Folder folderTree = gson.fromJson(fileData, com.syncro.persistence.Folder.class);
         return folderTree;
     }
 

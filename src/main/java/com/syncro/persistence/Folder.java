@@ -1,4 +1,4 @@
-package persistence;
+package com.syncro.persistence;
 
 
 import com.google.gson.annotations.Expose;

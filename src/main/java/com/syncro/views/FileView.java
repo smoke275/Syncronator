@@ -1,4 +1,4 @@
-package views;
+package com.syncro.views;
 
 
 import javax.imageio.ImageIO;
