@@ -216,10 +216,10 @@ public class FileExplorer extends JFrame {
 
                             for (int j = 0; j < list.size(); j++) {
                                 com.syncro.persistence.File file = new com.syncro.persistence.File();
-                                final File fileSource = (File)list.get(i);
+                                final File fileSource = (File)list.get(j);
                                 file.setName(fileSource.getName());
                                 file.setLocation(directoryName+
-                                        "\\"+fileSource.getName());
+                                        File.separator+fileSource.getName());
                                 final File fileDestination = new File(file.getLocation());
                                 Folder source = navigationStack.pop();
                                 invokeLater(() -> {
@@ -242,7 +242,7 @@ public class FileExplorer extends JFrame {
                     System.out.println("Drop failed: " + dtde);
                     dtde.rejectDrop();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                     e.printStackTrace();
                     dtde.rejectDrop();
                 }
             }
@@ -357,10 +357,10 @@ public class FileExplorer extends JFrame {
                     while(namesIterator.hasNext()){
                         String folder_name = namesIterator.next().getName();
                         if(!folder_name.equals(FolderView.ROOT))
-                            directoryName.append("\\"+folder_name);
+                            directoryName.append(File.separator+folder_name);
                     }
 
-                    directoryName.append("\\"+result+"\\dummyFile.txt");
+                    directoryName.append(File.separator+result+File.separator+"dummyFile.txt");
 
                     Folder source = navigationStack.pop();
                     source.getFolders().add(folder);
