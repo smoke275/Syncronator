@@ -8,6 +8,7 @@ public class Main {
         System.out.println("Initiating...");
         ApplicationSystemTray.getInstance().init();
         FileExplorer.invokeFileManager();
+
         System.out.println("Running......");
     }
 }
