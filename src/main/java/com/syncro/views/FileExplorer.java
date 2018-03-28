@@ -7,6 +7,7 @@ import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.syncro.persistence.AppProps;
 import com.syncro.persistence.Folder;
 
 import javax.imageio.ImageIO;
@@ -96,17 +97,11 @@ public class FileExplorer extends JFrame {
                     labels.getString("error_title_wrong_directory"), JOptionPane.ERROR_MESSAGE);
             String result = JOptionPane.showInputDialog(this,
                     labels.getString("option_pane_entry_message_for_setting_dir"));
-            Properties appProps = new Properties();
-            URL url = FileExplorer.class.getResource("/properties/editable.properties");
-            try {
-                appProps.load(url.openStream());
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            AppProps appProps = AppProps.getInstance();
             appProps.setProperty("drive_location",result);
             try {
-                appProps.store(new FileWriter(url.getPath()), labels.getString("comment_properties_file"));
+                appProps.store(new FileWriter(appProps.getUrl().getPath()),
+                        labels.getString("comment_properties_file"));
                 URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
                 URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
                 Files.move(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
@@ -121,14 +116,7 @@ public class FileExplorer extends JFrame {
 
 
     private boolean isDataValid(){
-        Properties appProps = new Properties();
-        URL url = FileExplorer.class.getResource("/properties/editable.properties");
-        try {
-            appProps.load(url.openStream());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        AppProps appProps = AppProps.getInstance();
         if(new File(appProps.getProperty("drive_location","")).isDirectory())
             return true;
         else
@@ -195,15 +183,9 @@ public class FileExplorer extends JFrame {
 
                             java.util.List list = (java.util.List) tr.getTransferData(flavors[i]);
 
-                            Properties appProps = new Properties();
-                            URL url = FileExplorer.class.getResource("/properties/editable.properties");
-                            try {
-                                appProps.load(url.openStream());
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                            AppProps appProps = AppProps.getInstance();
                             StringBuilder directoryName = new StringBuilder();
+
                             directoryName.append(appProps.getProperty("drive_location",""));
                             ListIterator<Folder> namesIterator = navigationStack.listIterator();
 
@@ -294,14 +276,8 @@ public class FileExplorer extends JFrame {
             dDriveLocation.setMnemonic(KeyEvent.VK_D);
             dDriveLocation.setToolTipText(labels.getString("submenu_item2_tooltip"));
             dDriveLocation.addActionListener((ActionEvent event) -> {
-                Properties appProps = new Properties();
-                URL url = FileExplorer.class.getResource("/properties/editable.properties");
-                try {
-                    appProps.load(url.openStream());
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                AppProps appProps = AppProps.getInstance();
                 String result = JOptionPane.showInputDialog(this, labels.getString("option_pane_message"),
                         appProps.getProperty("drive_location",""));
                 if(!Strings.isNullOrEmpty(result) &&
@@ -310,7 +286,7 @@ public class FileExplorer extends JFrame {
                             .equals(result)){ // the input is actually different
                         appProps.setProperty("drive_location",result);
                         try {
-                            appProps.store(new FileWriter(url.getPath()), labels.getString("comment_properties_file"));
+                            appProps.store(new FileWriter(appProps.getUrl().getPath()), labels.getString("comment_properties_file"));
                             URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
                             URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
                             Files.move(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
@@ -341,14 +317,7 @@ public class FileExplorer extends JFrame {
                     folder.setFolders(new LinkedList<>());
                     StringBuilder directoryName = new StringBuilder();
 
-                    Properties appProps = new Properties();
-                    URL url = FileExplorer.class.getResource("/properties/editable.properties");
-                    try {
-                        appProps.load(url.openStream());
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    AppProps appProps = AppProps.getInstance();
 
                     directoryName.append(appProps.getProperty("drive_location",""));
                     ListIterator<Folder> namesIterator = navigationStack.listIterator();

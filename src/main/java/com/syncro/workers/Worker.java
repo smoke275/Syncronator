@@ -1,4 +1,4 @@
 package com.syncro.workers;
 
-public class Worker {
+public class Worker extends Thread {
 }

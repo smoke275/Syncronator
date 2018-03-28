@@ -1,6 +1,6 @@
 package com.syncro.views;
 
-import com.syncro.workers.Worker;
+import com.syncro.workers.WebWorker;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -106,7 +106,7 @@ public class ApplicationSystemTray {
 
     private void startProcess() {
 
-        Thread thread = new Thread(() -> new Worker());
+        Thread thread = new Thread(() -> new WebWorker());
         thread.start();
     }
 }
