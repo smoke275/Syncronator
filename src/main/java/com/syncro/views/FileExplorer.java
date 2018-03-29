@@ -25,6 +25,7 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.logging.Logger;
 
 import static java.awt.EventQueue.invokeLater;
 
@@ -32,6 +33,8 @@ import static java.awt.EventQueue.invokeLater;
  * FileView explorer class creates basic view of the filesystem
  */
 public class FileExplorer extends JFrame {
+
+    private static final Logger LOGGER = Logger.getLogger(FileExplorer.class.getName());
 
     private static FileExplorer fileExplorer;
     private  JScrollPane scrollPane;
@@ -193,7 +196,7 @@ public class FileExplorer extends JFrame {
                             while(namesIterator.hasNext()){
                                 String folder_name = namesIterator.next().getName();
                                 if(!folder_name.equals(FolderView.ROOT))
-                                    directoryName.append("\\"+folder_name);
+                                    directoryName.append(File.separator+folder_name);
                             }
 
                             for (int j = 0; j < list.size(); j++) {
@@ -206,7 +209,9 @@ public class FileExplorer extends JFrame {
                                 Folder source = navigationStack.pop();
                                 invokeLater(() -> {
                                     source.getFiles().add(file);
+                                    LOGGER.info(rootFolderView.getName());
                                     drawWith(source);
+                                    saveFileView(rootFolderView);
                                     try {
                                         Files.copy(fileSource,fileDestination);
                                     } catch (IOException e) {
@@ -332,10 +337,12 @@ public class FileExplorer extends JFrame {
                     directoryName.append(File.separator+result+File.separator+"dummyFile.txt");
 
                     Folder source = navigationStack.pop();
+
                     source.getFolders().add(folder);
                     invokeLater(() -> {
                         drawWith(source);
-                        saveFileView(source);
+                        LOGGER.info(rootFolderView.getName());
+                        saveFileView(rootFolderView);
                         try {
                             Files.createParentDirs(new File(directoryName.toString()));
                         } catch (IOException e) {

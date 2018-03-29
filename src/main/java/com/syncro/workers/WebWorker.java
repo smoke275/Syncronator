@@ -19,8 +19,18 @@ public class WebWorker extends Worker {
 
     private static final Logger LOGGER = Logger.getLogger(WebWorker.class.getName());
 
-    public WebWorker(){
-        onStart();
+    private static WebWorker webWorker;
+
+    public static WebWorker getInstance(){
+        if(webWorker == null) {
+            webWorker = new WebWorker();
+            webWorker.onStart();
+        }
+        return webWorker;
+    }
+
+    private WebWorker(){
+
     }
 
     private void onStart(){
