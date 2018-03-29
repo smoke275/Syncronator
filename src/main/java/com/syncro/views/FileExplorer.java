@@ -157,7 +157,24 @@ public class FileExplorer extends JFrame {
         }
 
         for(com.syncro.persistence.File file:folderView.getFiles()){
-            getMainPanel().add(FileView.getNewInstance(file.getName()));
+            FileView fileViewTemp = FileView.getNewInstance(file.getName());
+            fileViewTemp.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if(e.getClickCount()==2){
+                        LOGGER.info(file.getName());
+                        if (Desktop.isDesktopSupported()) {
+                            try {
+                                File myFile = new File(file.getLocation());
+                                Desktop.getDesktop().open(myFile);
+                            } catch (IOException ex) {
+                                // no application registered for PDFs
+                            }
+                        }
+                    }
+                }
+            });
+            getMainPanel().add(fileViewTemp);
         }
         getMainPanel().revalidate();
         getMainPanel().repaint();
