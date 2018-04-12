@@ -9,9 +9,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.syncro.persistence.AppProps;
 import com.syncro.persistence.Folder;
+import com.syncro.resources.Constants;
+import com.syncro.resources.events.RegisterLater;
+import com.syncro.resources.events.UIEvent;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -36,12 +42,20 @@ public class FileExplorer extends JFrame {
 
     private static final Logger LOGGER = Logger.getLogger(FileExplorer.class.getName());
 
+    public static final int INACTIVE = 0;
+    public static final int ACTIVE = 1;
+    public static final int OFFLINE = 2;
+
     private static FileExplorer fileExplorer;
     private  JScrollPane scrollPane;
     private JPanel jPanel;
     private JMenuBar jMenuBar;
     private DropTarget dropTarget;
     private Folder rootFolderView;
+    private JPanel statusPanel;
+    private JLabel statusLabel;
+    private JLabel statusImage;
+    private int mode = INACTIVE;
     private Stack<com.syncro.persistence.Folder> navigationStack = null;
 
     public static FileExplorer getInstance(){
@@ -75,6 +89,21 @@ public class FileExplorer extends JFrame {
 
     }
 
+    public int getMode() {
+        return mode;
+    }
+
+    public void run(RegisterLater registerLater){
+        registerLater.doRegister();
+    }
+
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
+    public void onMessageFromWebSocket(UIEvent uiEvent) {
+        System.out.println("Yo ::::"+uiEvent.getMessage());
+        if(statusLabel!=null)
+            setMode(Integer.parseInt(uiEvent.getMessage()));
+    }
+
     public void initUI() {
         getContentPane().removeAll();
         getContentPane().revalidate();
@@ -86,6 +115,9 @@ public class FileExplorer extends JFrame {
 
         getScrollablePanel(jPanel);
         this.setJMenuBar(getExplorerMenuBar());
+
+        this.add(getStatusBar(), BorderLayout.SOUTH);
+
         this.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
         setConfigurations();
@@ -117,6 +149,68 @@ public class FileExplorer extends JFrame {
         }
     }
 
+    private JPanel getStatusBar(){
+        if(statusPanel==null){
+            statusPanel = new JPanel();
+            statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
+            statusPanel.setPreferredSize(new Dimension(this.getWidth(), 16));
+            statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
+            statusImage = new JLabel(new ImageIcon(getStatusImageIcon()));
+            statusLabel = new JLabel("status");
+            statusLabel.setHorizontalAlignment(SwingConstants.LEFT);
+            statusImage.setHorizontalAlignment(SwingConstants.LEFT);
+            statusPanel.add(statusImage);
+            statusPanel.add(statusLabel);
+        }
+        return statusPanel;
+    }
+    private static BufferedImage activeIcon;
+    private static BufferedImage inactiveIcon;
+    private static BufferedImage offlineIcon;
+
+    private static BufferedImage getStatusImageIcon() {
+        if (activeIcon == null) {
+            try {
+                URL url = FolderView.class.getResource("/images/active_img.png");
+                activeIcon = Constants.resizeImage(ImageIO.read(url),0.35);
+                url = FolderView.class.getResource("/images/offline_img.png");
+                offlineIcon = Constants.resizeImage(ImageIO.read(url),0.35);
+                url = FolderView.class.getResource("/images/inactive_img.png");
+                inactiveIcon = Constants.resizeImage(ImageIO.read(url),0.35);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        switch (FileExplorer.getInstance().getMode()){
+            case FileExplorer.ACTIVE: return activeIcon;
+            case FileExplorer.INACTIVE: return inactiveIcon;
+            case FileExplorer.OFFLINE: return offlineIcon;
+            default: return offlineIcon;
+        }
+    }
+
+    private void setMode(int mode){
+        this.mode = mode;
+        switch (FileExplorer.getInstance().getMode()){
+            case FileExplorer.ACTIVE: {
+                statusLabel.setText("ACTIVE");
+            } break;
+            case FileExplorer.INACTIVE: {
+                statusLabel.setText("INACTIVE");
+            } break;
+            case FileExplorer.OFFLINE: {
+                statusLabel.setText("OFFLINE");
+            } break;
+            default: {
+                statusLabel.setText("OFFLINE");
+                this.mode = 2;
+            }
+        }
+        statusImage.setIcon(new ImageIcon(getStatusImageIcon()));
+        drawWith(navigationStack.peek());
+    }
+
 
     private boolean isDataValid(){
         AppProps appProps = AppProps.getInstance();
@@ -132,7 +226,7 @@ public class FileExplorer extends JFrame {
         getMainPanel().removeAll();
         if(!folderView.getName().equals(FolderView.ROOT)){
             FolderView folderViewTemp = FolderView.getNewInstance(FolderView.NAVIGATE_UP);
-            folderViewTemp.addMouseListener(new MouseAdapter() {
+            if(getMode()!=FileExplorer.INACTIVE) folderViewTemp.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
@@ -145,7 +239,7 @@ public class FileExplorer extends JFrame {
         }
         for(com.syncro.persistence.Folder folder:folderView.getFolders()){
             FolderView folderViewTemp = FolderView.getNewInstance(folder.getName());
-            folderViewTemp.addMouseListener(new MouseAdapter() {
+            if(getMode()!=FileExplorer.INACTIVE) folderViewTemp.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
@@ -158,7 +252,7 @@ public class FileExplorer extends JFrame {
 
         for(com.syncro.persistence.File file:folderView.getFiles()){
             FileView fileViewTemp = FileView.getNewInstance(file.getName());
-            fileViewTemp.addMouseListener(new MouseAdapter() {
+            if(getMode()!=FileExplorer.INACTIVE) fileViewTemp.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
@@ -243,7 +337,7 @@ public class FileExplorer extends JFrame {
                             return;
                         }
                     }
-                    System.out.println("Drop failed: " + dtde);
+                    LOGGER.info("Drop failed: " + dtde);
                     dtde.rejectDrop();
                 } catch (Exception e) {
                      e.printStackTrace();
@@ -300,7 +394,8 @@ public class FileExplorer extends JFrame {
             dDriveLocation.addActionListener((ActionEvent event) -> {
 
                 AppProps appProps = AppProps.getInstance();
-                String result = JOptionPane.showInputDialog(this, labels.getString("option_pane_message"),
+                String result = JOptionPane.showInputDialog(this,
+                        labels.getString("option_pane_message"),
                         appProps.getProperty("drive_location",""));
                 if(!Strings.isNullOrEmpty(result) &&
                         new File(result).isDirectory()){

@@ -15,9 +15,6 @@ public class WebSocketHandler extends WebSocketClient {
 
     public WebSocketHandler(URI serverURI) {
         super(serverURI);
-
-        //WebSocketClient client = new WebSocketHandler(new URI("ws://localhost:8887"));
-        //client.connect();
     }
     @Override
     public void onOpen(ServerHandshake handshakedata) {

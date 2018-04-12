@@ -105,7 +105,6 @@ public class ApplicationSystemTray {
     }
 
     private void startProcess() {
-
         Thread thread = new Thread(() -> WebWorker.getInstance());
         thread.start();
     }
