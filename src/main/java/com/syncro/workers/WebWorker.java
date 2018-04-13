@@ -38,9 +38,9 @@ public class WebWorker extends Worker {
 
             EventBus.getDefault().register(FileExplorer.getInstance());
 
-            final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+            /*final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
             executor.schedule(() -> {EventBus.getDefault().post(new UIEvent("1"));}, 2, TimeUnit.SECONDS);
-            executor.schedule(() -> {EventBus.getDefault().post(new UIEvent("0"));}, 4, TimeUnit.SECONDS);
+            executor.schedule(() -> {EventBus.getDefault().post(new UIEvent("0"));}, 4, TimeUnit.SECONDS);*/
 
             webWorker.onStart();
         }
@@ -94,19 +94,17 @@ public class WebWorker extends Worker {
                 LOGGER.info("Started "+response.raw());
                 if(response.isSuccessful()){
                     createSocketConnection();
-                }
+                } else FileExplorer.getInstance().setMode(FileExplorer.INACTIVE);
 
             }
 
             @Override
             public void onFailure(Call<RegisterServiceResponse> call, Throwable t) {
                 System.out.println("Failed");
-                try {
-                    Thread.sleep(Constants.SLEEP_TIME);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                onStart();
+                final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+                executor.schedule(() -> onStart(),
+                        Constants.SLEEP_TIME, TimeUnit.SECONDS);
+                FileExplorer.getInstance().setMode(FileExplorer.OFFLINE);
             }
         });
 
@@ -123,6 +121,7 @@ public class WebWorker extends Worker {
         String endPoint = appProps.getProperty("server_ws_endpoint","");
         if(StringUtils.isNotEmpty(endPoint))
             endPoint = Constants.WS + endPoint;
+        LOGGER.info(endPoint);
         try {
             webSocketHandler = new WebSocketHandler(new URI(endPoint));
             webSocketHandler.connect();

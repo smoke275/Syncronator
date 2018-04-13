@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 
 public class Constants {
     public static final String HTTP = "http://";
-    public static final String WS = "http://";
+    public static final String WS = "ws://";
     public static final int SLEEP_TIME = 100000;
 
     public static BufferedImage toBufferedImage(Image img)

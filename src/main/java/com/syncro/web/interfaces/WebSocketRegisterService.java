@@ -7,9 +7,9 @@ import retrofit2.http.Body;
 import retrofit2.http.POST;
 
 public interface WebSocketRegisterService {
-    @POST("endpoint/joinTeam")
+    @POST("api/joinTeam")
     Call<RegisterServiceResponse> registerService(@Body ServiceRequest serviceRequest);
 
-    @POST("endpoint/makeTeam")
+    @POST("api/makeTeam")
     Call<RegisterServiceResponse> makeTeamService(@Body ServiceRequest serviceRequest);
 }

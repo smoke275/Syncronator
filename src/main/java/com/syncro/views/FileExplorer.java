@@ -55,7 +55,7 @@ public class FileExplorer extends JFrame {
     private JPanel statusPanel;
     private JLabel statusLabel;
     private JLabel statusImage;
-    private int mode = INACTIVE;
+    private int mode = ACTIVE;
     private Stack<com.syncro.persistence.Folder> navigationStack = null;
 
     public static FileExplorer getInstance(){
@@ -190,20 +190,22 @@ public class FileExplorer extends JFrame {
         }
     }
 
-    private void setMode(int mode){
+    public void setMode(int mode){
         this.mode = mode;
+        Locale locale = new Locale("en", "US");
+        ResourceBundle labels = ResourceBundle.getBundle("strings/string", locale);
         switch (FileExplorer.getInstance().getMode()){
             case FileExplorer.ACTIVE: {
-                statusLabel.setText("ACTIVE");
+                statusLabel.setText(labels.getString("active_label"));
             } break;
             case FileExplorer.INACTIVE: {
-                statusLabel.setText("INACTIVE");
+                statusLabel.setText(labels.getString("inactive_label"));
             } break;
             case FileExplorer.OFFLINE: {
-                statusLabel.setText("OFFLINE");
+                statusLabel.setText(labels.getString("offline_label"));
             } break;
             default: {
-                statusLabel.setText("OFFLINE");
+                statusLabel.setText(labels.getString("offline_label"));
                 this.mode = 2;
             }
         }
