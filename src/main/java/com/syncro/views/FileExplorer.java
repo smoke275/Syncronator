@@ -261,7 +261,11 @@ public class FileExplorer extends JFrame {
                         LOGGER.info(file.getName());
                         if (Desktop.isDesktopSupported()) {
                             try {
-                                File myFile = new File(file.getLocation());
+                                String actualLocation = file.getLocation().split(":")[1];
+                                AppProps appProps = AppProps.getInstance();
+                                actualLocation = appProps.getProperty("drive_location","")
+                                        + File.separator + actualLocation;
+                                File myFile = new File(actualLocation);
                                 Desktop.getDesktop().open(myFile);
                             } catch (IOException ex) {
                                 // no application registered for PDFs
@@ -319,6 +323,15 @@ public class FileExplorer extends JFrame {
                                 file.setLocation(directoryName+
                                         File.separator+fileSource.getName());
                                 final File fileDestination = new File(file.getLocation());
+
+                                //adding source computer id
+                                String relative
+                                        = new File(appProps.getProperty("drive_location",""))
+                                        .toURI()
+                                        .relativize(new File(file.getLocation())
+                                                .toURI()).getPath();
+                                file.setLocation(appProps.getProperty("uuid","")+":"+relative);
+
                                 Folder source = navigationStack.pop();
                                 invokeLater(() -> {
                                     source.getFiles().add(file);
@@ -396,19 +409,35 @@ public class FileExplorer extends JFrame {
             dDriveLocation.addActionListener((ActionEvent event) -> {
 
                 AppProps appProps = AppProps.getInstance();
-                String result = JOptionPane.showInputDialog(this,
-                        labels.getString("option_pane_message"),
-                        appProps.getProperty("drive_location",""));
+                String currentLocation = null;
+                if(new File(appProps.getProperty("drive_location","")).
+                        isDirectory())
+                    currentLocation = appProps.getProperty("drive_location","");
+                JFileChooser jFileChooser;
+                if(currentLocation!=null)
+                    jFileChooser = new JFileChooser(currentLocation);
+                else
+                    jFileChooser = new JFileChooser();
+                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                jFileChooser.setMultiSelectionEnabled(false);
+                Integer opt = jFileChooser.showOpenDialog(this);
+                jFileChooser.setDialogTitle(labels.getString("option_pane_message"));
+                String result = null;
+
+                if(opt==JFileChooser.OPEN_DIALOG)
+                    result = jFileChooser.getSelectedFile().getAbsolutePath();
+
                 if(!Strings.isNullOrEmpty(result) &&
                         new File(result).isDirectory()){
                     if(!appProps.getProperty("drive_location","")
                             .equals(result)){ // the input is actually different
                         appProps.setProperty("drive_location",result);
                         try {
-                            appProps.store(new FileWriter(appProps.getUrl().getPath()), labels.getString("comment_properties_file"));
+                            appProps.store(new FileWriter(appProps.getUrl().getPath()),
+                                    labels.getString("comment_properties_file"));
                             URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
                             URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
-                            Files.move(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
+                            Files.copy(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
                             invokeLater(() -> {
                                 FileExplorer.getInstance().initUI();
                             });

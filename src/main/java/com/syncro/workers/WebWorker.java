@@ -1,14 +1,21 @@
 package com.syncro.workers;
 
 import com.fasterxml.uuid.Generators;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.syncro.persistence.AppProps;
 import com.syncro.resources.Constants;
-import com.syncro.resources.events.UIEvent;
+import com.syncro.transfer.Data;
+import com.syncro.transfer.Message;
 import com.syncro.views.FileExplorer;
 import com.syncro.web.RegisterServiceResponse;
 import com.syncro.web.ServiceRequest;
 import com.syncro.web.WebSocketHandler;
+import com.syncro.web.handlers.SyncSocket;
 import com.syncro.web.interfaces.WebSocketRegisterService;
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 import retrofit2.Call;
@@ -31,6 +38,8 @@ public class WebWorker extends Worker {
     private static WebWorker webWorker;
 
     private WebSocketHandler webSocketHandler;
+
+    private SyncSocket socketIO;
 
     public static WebWorker getInstance(){
         if(webWorker == null) {
@@ -93,7 +102,7 @@ public class WebWorker extends Worker {
             public void onResponse(Call<RegisterServiceResponse> call, Response<RegisterServiceResponse> response) {
                 LOGGER.info("Started "+response.raw());
                 if(response.isSuccessful()){
-                    createSocketConnection();
+                    createSocketIOConnection();
                 } else FileExplorer.getInstance().setMode(FileExplorer.INACTIVE);
 
             }
@@ -115,7 +124,7 @@ public class WebWorker extends Worker {
         return webSocketHandler;
     }
 
-    private void createSocketConnection(){
+    private void createWebSocketConnection(){
 
         AppProps appProps = AppProps.getInstance();
         String endPoint = appProps.getProperty("server_ws_endpoint","");
@@ -128,5 +137,41 @@ public class WebWorker extends Worker {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+    }
+
+    public SyncSocket getSocketIO() {
+        return socketIO;
+    }
+
+    private void createSocketIOConnection(){
+
+        AppProps appProps = AppProps.getInstance();
+        String endPoint = appProps.getProperty("server_ws_endpoint","");
+        if(StringUtils.isNotEmpty(endPoint))
+            endPoint = Constants.HTTP + endPoint;
+        LOGGER.info(endPoint);
+        try {
+
+            socketIO = new SyncSocket(new URI(endPoint));
+            socketIO.connect();
+
+            Message message = new Message()
+                    .withType("send")
+                    .withData(new Data()
+                            .withTo("id")
+                            .withFrom(appProps.getProperty("uuid",""))
+                            .withMessage("xxx"));
+            final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+            Gson gson = new Gson();
+            LOGGER.info(gson.toJson(message));
+            executor.schedule(() -> {
+                socketIO.send(gson.toJson(message));
+                LOGGER.info("Sent");
+                }, 2, TimeUnit.SECONDS);
+
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
     }
 }
