@@ -22,15 +22,14 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static java.awt.EventQueue.invokeLater;
@@ -130,9 +129,30 @@ public class FileExplorer extends JFrame {
             ResourceBundle labels = ResourceBundle.getBundle("strings/string", locale);
             JOptionPane.showMessageDialog(this,labels.getString("error_msg_wrong_directory"),
                     labels.getString("error_title_wrong_directory"), JOptionPane.ERROR_MESSAGE);
-            String result = JOptionPane.showInputDialog(this,
-                    labels.getString("option_pane_entry_message_for_setting_dir"));
+
+
             AppProps appProps = AppProps.getInstance();
+            String currentLocation = null;
+            boolean isChoosingNecessary= true;
+            JFileChooser jFileChooser = null;
+            if(new File(appProps.getProperty("drive_location","")).
+                    isDirectory()){
+                currentLocation = appProps.getProperty("drive_location","");
+                isChoosingNecessary = false;
+            }
+            jFileChooser = new JFileChooser(currentLocation);
+
+            jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            jFileChooser.setMultiSelectionEnabled(false);
+            jFileChooser.setDialogTitle(labels.getString("option_pane_entry_message_for_setting_dir"));
+            Integer opt = -1;
+            String result = null;
+
+            while(opt!=JFileChooser.OPEN_DIALOG){
+                opt = jFileChooser.showOpenDialog(this);
+            }
+            result = jFileChooser.getSelectedFile().getAbsolutePath();
+
             appProps.setProperty("drive_location",result);
             try {
                 appProps.store(new FileWriter(appProps.getUrl().getPath()),
@@ -147,6 +167,22 @@ public class FileExplorer extends JFrame {
                 FileExplorer.getInstance().initUI();
             });
         }
+
+/*        getGlassPane().setVisible(true);
+        getGlassPane().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                LOGGER.info("Active");
+                getGlassPane().setVisible(false);
+                setMode(INACTIVE);
+                final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+                executor.schedule(() -> {
+                            getGlassPane().setVisible(true);
+                            setMode(ACTIVE);
+                        },
+                        3, TimeUnit.SECONDS);
+            }
+        });*/
     }
 
     private JPanel getStatusBar(){
@@ -344,8 +380,6 @@ public class FileExplorer extends JFrame {
                                         e.printStackTrace();
                                     }
                                 });
-
-
                             }
 
                             dtde.dropComplete(true);
@@ -410,18 +444,17 @@ public class FileExplorer extends JFrame {
 
                 AppProps appProps = AppProps.getInstance();
                 String currentLocation = null;
+                JFileChooser jFileChooser = null;
                 if(new File(appProps.getProperty("drive_location","")).
-                        isDirectory())
+                        isDirectory()){
                     currentLocation = appProps.getProperty("drive_location","");
-                JFileChooser jFileChooser;
-                if(currentLocation!=null)
-                    jFileChooser = new JFileChooser(currentLocation);
-                else
-                    jFileChooser = new JFileChooser();
+                }
+                jFileChooser = new JFileChooser(currentLocation);
+
                 jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 jFileChooser.setMultiSelectionEnabled(false);
-                Integer opt = jFileChooser.showOpenDialog(this);
                 jFileChooser.setDialogTitle(labels.getString("option_pane_message"));
+                Integer opt = jFileChooser.showOpenDialog(this);
                 String result = null;
 
                 if(opt==JFileChooser.OPEN_DIALOG)
