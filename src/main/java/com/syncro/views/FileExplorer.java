@@ -295,6 +295,12 @@ public class FileExplorer extends JFrame {
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
                         LOGGER.info(file.getName());
+                        try{
+                            showProgressBar();
+                        } catch (Exception e1){
+                            e1.printStackTrace();
+                        }
+
                         if (Desktop.isDesktopSupported()) {
                             try {
                                 String actualLocation = file.getLocation().split(":")[1];
@@ -585,5 +591,32 @@ public class FileExplorer extends JFrame {
             return false;
         }
         return true;
+    }
+
+    private void showProgressBar(){
+        final JDialog dlg = new JDialog(getInstance(), "Progress Dialog", true);
+        JProgressBar dpb = new JProgressBar(0, 100);
+        dlg.add(BorderLayout.CENTER, dpb);
+        dlg.setUndecorated(true);
+        dlg.add(BorderLayout.NORTH, new JLabel("Progress..."));
+        dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dlg.setSize(300, 40);
+        dlg.setLocationRelativeTo(getInstance());
+
+        new Thread(()->{
+            for (int i = 0; i <= 100; i++) {
+                dpb.setValue(i);
+                if(dpb.getValue() == 100){
+                    dlg.setVisible(false);
+
+                }
+                try {
+                    Thread.sleep(25);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        dlg.setVisible(true);
     }
 }

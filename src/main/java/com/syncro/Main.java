@@ -1,6 +1,5 @@
 package com.syncro;
 
-import com.syncro.persistence.AppProps;
 import com.syncro.views.ApplicationSystemTray;
 import com.syncro.views.FileExplorer;
 import com.syncro.views.FolderView;
@@ -39,7 +38,7 @@ public class Main {
                         try {
                             fileLock.release();
                             randomAccessFile.close();
-                            file.delete();
+                            //file.delete();
                         } catch (Exception e) {
                             //log.error("Unable to remove lock file: " + lockFile, e);
                         }
@@ -49,6 +48,7 @@ public class Main {
             }
         } catch (Exception e) {
             // log.error("Unable to create and/or lock file: " + lockFile, e);
+            e.printStackTrace();
         }
         return false;
     }
