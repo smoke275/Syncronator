@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import com.syncro.persistence.AppProps;
 import com.syncro.persistence.Folder;
 import com.syncro.resources.Constants;
+import com.syncro.resources.events.JSONUpdate;
 import com.syncro.resources.events.RegisterLater;
 import com.syncro.resources.events.UIEvent;
 import org.greenrobot.eventbus.Subscribe;
@@ -28,8 +29,6 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static java.awt.EventQueue.invokeLater;
@@ -99,8 +98,21 @@ public class FileExplorer extends JFrame {
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onMessageFromWebSocket(UIEvent uiEvent) {
         System.out.println("Yo ::::"+uiEvent.getMessage());
-        if(statusLabel!=null)
-            setMode(Integer.parseInt(uiEvent.getMessage()));
+    }
+
+    @Subscribe(threadMode = ThreadMode.BACKGROUND)
+    public void onUpdateJsonFromWebSocket(JSONUpdate jsonUpdate) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        // parse json string to object
+        LOGGER.info("json update ::"+jsonUpdate.getJson());
+        com.syncro.persistence.Folder folderTree =
+                gson.fromJson(jsonUpdate.getJson(), com.syncro.persistence.Folder.class);
+        saveFileView(folderTree,false);
+        invokeLater(() -> {
+            LOGGER.info("Current ::"+navigationStack.peek().getName());
+            initUI();
+        });
+
     }
 
     public void initUI() {
@@ -157,7 +169,8 @@ public class FileExplorer extends JFrame {
             try {
                 appProps.store(new FileWriter(appProps.getUrl().getPath()),
                         labels.getString("comment_properties_file"));
-                URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
+                //URL urlOriginal = FolderView.class.getResource("/dist/filesystem/file_view");
+                URL urlOriginal = Constants.getResource("file_view");
                 URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
                 Files.move(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
             } catch (IOException e) {
@@ -379,7 +392,7 @@ public class FileExplorer extends JFrame {
                                     source.getFiles().add(file);
                                     LOGGER.info(rootFolderView.getName());
                                     drawWith(source);
-                                    saveFileView(rootFolderView);
+                                    saveFileView(rootFolderView,true);
                                     try {
                                         Files.copy(fileSource,fileDestination);
                                     } catch (IOException e) {
@@ -474,9 +487,16 @@ public class FileExplorer extends JFrame {
                         try {
                             appProps.store(new FileWriter(appProps.getUrl().getPath()),
                                     labels.getString("comment_properties_file"));
-                            URL urlOriginal = FolderView.class.getResource("/file_system/file_view");
-                            URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
-                            Files.copy(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
+                            //URL urlOriginal = FolderView.class.getResource("/dist/filesystem/file_view");
+                            URL urlOriginal = Constants.getResource("file_view");
+                            //URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
+                            //Files.copy(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
+                            Folder folder = new Folder();
+                            folder.setName(FolderView.ROOT);
+                            folder.setFiles(new LinkedList<>());
+                            folder.setFolders(new LinkedList<>());
+                            saveFileView(folder,true);
+
                             invokeLater(() -> {
                                 FileExplorer.getInstance().initUI();
                             });
@@ -524,7 +544,7 @@ public class FileExplorer extends JFrame {
                     invokeLater(() -> {
                         drawWith(source);
                         LOGGER.info(rootFolderView.getName());
-                        saveFileView(rootFolderView);
+                        saveFileView(rootFolderView,true);
                         try {
                             Files.createParentDirs(new File(directoryName.toString()));
                         } catch (IOException e) {
@@ -544,7 +564,9 @@ public class FileExplorer extends JFrame {
     }
 
     public static Folder readFileView(){
-        URL url = FolderView.class.getResource("/file_system/file_view");
+        //URL url = FolderView.class.getResource("/dist/filesystem/file_view");
+        URL url = Constants.getResource("file_view");
+        LOGGER.info("url for reading ::"+url);
         // read JSON file data as String
         String fileData = null;
         try {
@@ -561,8 +583,12 @@ public class FileExplorer extends JFrame {
         return folderTree;
     }
 
-    public static Boolean saveFileView(Folder folder){
-        URL url = FolderView.class.getResource("/file_system/file_view");
+    public static Boolean saveFileView(Folder folder, boolean withBroadCast){
+        //URL url = FolderView.class.getResource("/dist/filesystem/file_view");
+        if(withBroadCast){
+
+        }
+        URL url = Constants.getResource("file_view");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonInString = gson.toJson(folder);
 

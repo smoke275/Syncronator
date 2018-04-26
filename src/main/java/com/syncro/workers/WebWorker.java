@@ -1,21 +1,14 @@
 package com.syncro.workers;
 
 import com.fasterxml.uuid.Generators;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.syncro.persistence.AppProps;
 import com.syncro.resources.Constants;
-import com.syncro.transfer.Data;
-import com.syncro.transfer.Message;
 import com.syncro.views.FileExplorer;
 import com.syncro.web.RegisterServiceResponse;
 import com.syncro.web.ServiceRequest;
 import com.syncro.web.WebSocketHandler;
 import com.syncro.web.handlers.SyncSocket;
 import com.syncro.web.interfaces.WebSocketRegisterService;
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 import retrofit2.Call;
@@ -154,24 +147,30 @@ public class WebWorker extends Worker {
 
             socketIO = new SyncSocket(new URI(endPoint));
             socketIO.connect();
+            socketIO.onStartup();
 
-            Message message = new Message()
+            /*Message message = new Message()
                     .withType("send")
                     .withData(new Data()
                             .withTo("id")
                             .withFrom(appProps.getProperty("uuid",""))
                             .withMessage("xxx"));
+
             final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
             Gson gson = new Gson();
-            LOGGER.info(gson.toJson(message));
             executor.schedule(() -> {
-                socketIO.send(gson.toJson(message));
+                socketIO.emit(MessageGetJson.EVENT,
+                        gson.toJson(messageGetJson));
                 LOGGER.info("Sent");
-                }, 2, TimeUnit.SECONDS);
+            }, 2, TimeUnit.SECONDS);*/
 
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
+    }
+
+    public void refreshJson(){
+        socketIO.onStartup();
     }
 }

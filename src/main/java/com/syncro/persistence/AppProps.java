@@ -1,6 +1,6 @@
 package com.syncro.persistence;
 
-import com.syncro.views.FileExplorer;
+import com.syncro.resources.Constants;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,7 +12,8 @@ public class AppProps extends Properties{
     private URL url;
     private AppProps(){
         super();
-        url = AppProps.class.getResource("/properties/editable.properties");
+        //url = AppProps.class.getResource("/dist/properties/editable.properties");
+        url = Constants.getResource("editable.properties");
     }
 
     public URL getUrl() {
