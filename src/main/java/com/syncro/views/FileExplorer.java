@@ -13,6 +13,7 @@ import com.syncro.resources.Constants;
 import com.syncro.resources.events.JSONUpdate;
 import com.syncro.resources.events.RegisterLater;
 import com.syncro.resources.events.UIEvent;
+import com.syncro.workers.WebWorker;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -316,12 +317,37 @@ public class FileExplorer extends JFrame {
 
                         if (Desktop.isDesktopSupported()) {
                             try {
-                                String actualLocation = file.getLocation().split(":")[1];
                                 AppProps appProps = AppProps.getInstance();
-                                actualLocation = appProps.getProperty("drive_location","")
-                                        + File.separator + actualLocation;
-                                File myFile = new File(actualLocation);
-                                Desktop.getDesktop().open(myFile);
+                                String nodeId = file.getLocation().split(":")[0];
+                                final String actualLocation = file.getLocation().split(":")[1];
+                                if(nodeId.equals(appProps.getProperty("uuid",""))){
+                                    String createLocation = appProps.getProperty("drive_location","")
+                                            + File.separator + actualLocation;
+                                    File myFile = new File(createLocation);
+                                    Desktop.getDesktop().open(myFile);
+                                }else{
+                                    WebWorker.getInstance().requestFile(nodeId,
+                                            file.getName(),() ->{
+                                                LOGGER.info("received File");
+                                                String createLocation =
+                                                        appProps.getProperty("drive_location","")
+                                                        + File.separator + actualLocation;
+                                                File myFile = new File(createLocation);
+                                                try {
+                                                    Desktop.getDesktop().open(myFile);
+                                                } catch (IOException e1) {
+                                                    e1.printStackTrace();
+                                                }
+                                                invokeLater(() -> {
+                                                    String newLocation =
+                                                            appProps.getProperty("uuid","")+
+                                                                    ":"+
+                                                            file.getLocation().split(":")[1];
+                                                    file.setLocation(newLocation);
+                                                    saveFileView(rootFolderView,true);
+                                                });
+                                            });
+                                }
                             } catch (IOException ex) {
                                 // no application registered for PDFs
                             }
@@ -489,13 +515,15 @@ public class FileExplorer extends JFrame {
                                     labels.getString("comment_properties_file"));
                             //URL urlOriginal = FolderView.class.getResource("/dist/filesystem/file_view");
                             URL urlOriginal = Constants.getResource("file_view");
-                            //URL urlDefault = FolderView.class.getResource("/file_system/default_file_view");
-                            //Files.copy(new File(urlDefault.getPath()),new File(urlOriginal.getPath()));
-                            Folder folder = new Folder();
+
+                            /**this part needs to change because the files in the system
+                             * need to be shifted first so assuming that the fileystem cannot be shifted
+                            **/
+                            /*Folder folder = new Folder();
                             folder.setName(FolderView.ROOT);
                             folder.setFiles(new LinkedList<>());
                             folder.setFolders(new LinkedList<>());
-                            saveFileView(folder,true);
+                            saveFileView(folder,true);*/
 
                             invokeLater(() -> {
                                 FileExplorer.getInstance().initUI();
@@ -585,12 +613,16 @@ public class FileExplorer extends JFrame {
 
     public static Boolean saveFileView(Folder folder, boolean withBroadCast){
         //URL url = FolderView.class.getResource("/dist/filesystem/file_view");
-        if(withBroadCast){
 
-        }
         URL url = Constants.getResource("file_view");
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonInString = gson.toJson(folder);
+
+        if(withBroadCast){
+            gson = new GsonBuilder().create();
+            String broadCastJsonInString = gson.toJson(folder);
+            WebWorker.getInstance().broadcastJson(broadCastJsonInString);
+        }
 
         Reader initialReader = new StringReader(jsonInString);
 

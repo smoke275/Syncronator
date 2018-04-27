@@ -1,9 +1,13 @@
 package com.syncro.workers;
 
 import com.fasterxml.uuid.Generators;
+import com.google.common.io.Files;
 import com.syncro.persistence.AppProps;
+import com.syncro.persistence.Folder;
 import com.syncro.resources.Constants;
+import com.syncro.transfer.FileServer;
 import com.syncro.views.FileExplorer;
+import com.syncro.views.FolderView;
 import com.syncro.web.RegisterServiceResponse;
 import com.syncro.web.ServiceRequest;
 import com.syncro.web.WebSocketHandler;
@@ -11,15 +15,20 @@ import com.syncro.web.handlers.SyncSocket;
 import com.syncro.web.interfaces.WebSocketRegisterService;
 import org.apache.commons.lang3.StringUtils;
 import org.greenrobot.eventbus.EventBus;
+import org.json.JSONException;
+import org.json.JSONObject;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -70,6 +79,8 @@ public class WebWorker extends Worker {
             uuid = UUID.fromString(appProps.getProperty("uuid",""));
 
         }
+
+        LOGGER.info("UUID ::"+uuid);
         String endPoint = appProps.getProperty("server_endpoint","");
         if(StringUtils.isNotEmpty(endPoint))
             endPoint = Constants.HTTP + endPoint;
@@ -83,11 +94,7 @@ public class WebWorker extends Worker {
 
         Call<RegisterServiceResponse> call = null;
 
-        if(!uuidPresent)
-            call = service.makeTeamService(new ServiceRequest()
-                .withTeam("myteam").withMacId(uuid.toString()));
-        else
-            call = service.registerService(new ServiceRequest()
+        call = service.registerService(new ServiceRequest()
                 .withTeam("myteam").withMacId(uuid.toString()));
 
         call.enqueue(new Callback<RegisterServiceResponse>() {
@@ -170,7 +177,49 @@ public class WebWorker extends Worker {
 
     }
 
+    public void broadcastJson(String json){
+        AppProps appProps = AppProps.getInstance();
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("mac_id",appProps.getProperty("uuid",""));
+            jsonObject.put("version",1);
+            jsonObject.put("json",new JSONObject(json));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        socketIO.emit(SyncSocket.PUT_JSON,jsonObject.toString());
+    }
+
     public void refreshJson(){
         socketIO.onStartup();
+    }
+
+    public void requestFile(String uuid, String fileName, com.syncro.transfer.callbacks.Callback callback){
+        JSONObject jsonObject = new JSONObject();
+        AppProps appProps = AppProps.getInstance();
+        Folder folder = FileExplorer.readFileView();
+        String filePath = appProps.getProperty("drive_location","")
+                + File.separator + FolderView.getFileUrl(folder,fileName);
+        try {
+            Files.createParentDirs(new File(filePath));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            jsonObject.put("mac_id",uuid);
+            JSONObject dataObject = new JSONObject();
+            dataObject.put("requestedFile",fileName);
+            jsonObject.put("pass_message",dataObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        socketIO.emit(SyncSocket.P2P,jsonObject.toString());
+        Executors.newSingleThreadExecutor().execute(() -> {
+            FileServer fileServer =
+                    new FileServer(appProps.getProperty("server_relay_endpoint",""),
+                            Constants.DESTINATION_PORT,
+                            filePath,
+                            callback);
+        });
     }
 }

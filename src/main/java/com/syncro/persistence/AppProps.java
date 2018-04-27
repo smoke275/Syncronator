@@ -6,14 +6,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class AppProps extends Properties{
+    private static final Logger LOGGER = Logger.getLogger(AppProps.class.getName());
     private static AppProps appProps;
     private URL url;
     private AppProps(){
         super();
         //url = AppProps.class.getResource("/dist/properties/editable.properties");
         url = Constants.getResource("editable.properties");
+        LOGGER.info("AppLogs Location:: "+url);
     }
 
     public URL getUrl() {
@@ -28,6 +31,7 @@ public class AppProps extends Properties{
     public void preserve(){
         try {
             appProps.store(new FileWriter(appProps.getUrl().getPath()), "");
+            LOGGER.info("AppLogs Preserving:: "+url);
         } catch (IOException e) {
         e.printStackTrace();
         }

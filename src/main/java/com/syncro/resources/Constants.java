@@ -15,6 +15,8 @@ public class Constants {
     public static final String HTTP = "http://";
     public static final String WS = "ws://";
     public static final int SLEEP_TIME = 100000;
+    public static final int SOURCE_PORT = 10080;
+    public static final int DESTINATION_PORT = 10081;
 
     public static BufferedImage toBufferedImage(Image img)
     {
@@ -46,12 +48,15 @@ public class Constants {
         return resizedImage;
     }
 
-    public static URL getResource(String fileName){
-        File root = new File(System.getProperty("user.dir"));
+    public static URL fetchResource(String fileName, String sourceFolder, boolean resourceExtraction){
+        File root = new File(sourceFolder);
         try {
             boolean recursive = true;
 
-            Collection files = FileUtils.listFiles(root.getParentFile(), null, recursive);
+
+            Collection files = FileUtils.listFiles(
+                    (resourceExtraction)?root.getParentFile():root
+                    , null, recursive);
 
             for (Iterator iterator = files.iterator(); iterator.hasNext();) {
                 File file = (File) iterator.next();
@@ -64,5 +69,13 @@ public class Constants {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static URL getResource(String fileName, String sourceFolder){
+        return fetchResource(fileName, sourceFolder,false);
+    }
+
+    public static URL getResource(String fileName){
+        return fetchResource(fileName, System.getProperty("user.dir"),true);
     }
 }

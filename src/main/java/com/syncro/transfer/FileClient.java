@@ -2,26 +2,35 @@ package com.syncro.transfer;
 
 import com.syncro.transfer.callbacks.Callback;
 
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
+import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 
-public abstract class FileClient implements Callback{
-
+public class FileClient{
+    private static final Logger LOGGER = Logger.getLogger(FileClient.class.getName());
     private Socket socket;
+    private Callback callback;
 
-    public FileClient(String host, int port, String fileName) {
+    public FileClient(String host, int port, String fileName, Callback callback) {
+        this.callback = callback;
         try {
             socket = new Socket(host, port);
             sendFile(fileName);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public void sendFile(String file) throws IOException {
+
+
+        int fileSize = (int)(new File(file)).length();
+
         DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+        dataOutputStream.writeInt(fileSize);
+        LOGGER.info("Sent fileSize ="+fileSize);
         FileInputStream fileInputStream = new FileInputStream(file);
         byte[] buffer = new byte[4096];
 
@@ -31,6 +40,9 @@ public abstract class FileClient implements Callback{
 
         fileInputStream.close();
         dataOutputStream.close();
+
+        if(callback!=null)
+            Executors.newCachedThreadPool().execute(callback);
     }
 
 }

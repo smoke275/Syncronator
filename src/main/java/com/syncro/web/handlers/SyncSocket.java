@@ -2,17 +2,25 @@ package com.syncro.web.handlers;
 
 import com.google.gson.Gson;
 import com.syncro.persistence.AppProps;
+import com.syncro.resources.Constants;
 import com.syncro.resources.events.JSONUpdate;
 import com.syncro.resources.events.UIEvent;
+import com.syncro.transfer.FileClient;
+import com.syncro.transfer.FileServer;
 import com.syncro.transfer.MessageGetJson;
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import org.apache.commons.io.FileUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -25,6 +33,8 @@ public class SyncSocket {
     private static final Logger LOGGER = Logger.getLogger(SyncSocket.class.getName());
     public static final String JSON_EVENT = "json";
     public static final String JSON_UPDATE = "update_json";
+    public static final String PUT_JSON = "put_json";
+    public static final String P2P = "p2p";
 
 
     private Socket socket;
@@ -32,6 +42,9 @@ public class SyncSocket {
     public SyncSocket(URI uri) throws URISyntaxException {
         socket = IO.socket(uri.toString());
         LOGGER.info("Get Socket ::"+uri.toString());
+
+        AppProps appProps = AppProps.getInstance();
+
         socket.on(Socket.EVENT_CONNECT, args -> {
             LOGGER.info("On connect");
         }).on(Socket.EVENT_MESSAGE,args -> {
@@ -44,20 +57,48 @@ public class SyncSocket {
             JSONObject jsonString = null;
             try {
                 jsonString = obj.getJSONObject("data");
+                EventBus.getDefault().post(new JSONUpdate(jsonString.toString()));
             } catch (JSONException e) {
-                e.printStackTrace();
+                LOGGER.severe(obj.toString());
             }
-            EventBus.getDefault().post(new JSONUpdate(jsonString.toString()));
         }).on(JSON_UPDATE,args -> {
             LOGGER.info("JSON ::"+args[0]);
             JSONObject obj = (JSONObject)args[0];
             JSONObject jsonString = null;
             try {
                 jsonString = obj.getJSONObject("data");
+                EventBus.getDefault().post(new JSONUpdate(jsonString.toString()));
+            } catch (JSONException e) {
+                LOGGER.severe(obj.toString());
+            }
+        }).on(appProps.getProperty("uuid",""),args -> {
+            //own name event
+            LOGGER.info(""+args[0]);
+            JSONObject jsonObject = (JSONObject)args[0];
+            try {
+                String filePath = jsonObject.getString("requestedFile");
+                URL url = Constants.getResource(filePath,
+                        appProps.getProperty("drive_location",""));
+
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    FileClient fileClient =
+                            new FileClient(appProps.getProperty("server_relay_endpoint",""),
+                                    Constants.SOURCE_PORT,
+                                    url.getPath(),() -> {
+                                LOGGER.info("Done server file transfer");
+                                try {
+                                    FileUtils.forceDelete(FileUtils.getFile(url.getPath()));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
+                });
+
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            EventBus.getDefault().post(new JSONUpdate(jsonString.toString()));
+
         });
     }
 
