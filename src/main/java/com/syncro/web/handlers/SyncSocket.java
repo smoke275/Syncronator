@@ -6,8 +6,8 @@ import com.syncro.resources.Constants;
 import com.syncro.resources.events.JSONUpdate;
 import com.syncro.resources.events.UIEvent;
 import com.syncro.transfer.FileClient;
-import com.syncro.transfer.FileServer;
 import com.syncro.transfer.MessageGetJson;
+import com.syncro.views.FileExplorer;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import org.apache.commons.io.FileUtils;
@@ -15,7 +15,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -35,6 +34,8 @@ public class SyncSocket {
     public static final String JSON_UPDATE = "update_json";
     public static final String PUT_JSON = "put_json";
     public static final String P2P = "p2p";
+    public static final String GET_ACTIVE = "get_active";
+    public static final String ACTIVE = "active";
 
 
     private Socket socket;
@@ -99,6 +100,16 @@ public class SyncSocket {
                 e.printStackTrace();
             }
 
+        }).on(ACTIVE,args -> {
+            LOGGER.info("ACTIVE ::"+args[0]);
+            JSONObject obj = (JSONObject)args[0];
+            String jsonString = null;
+            try {
+                jsonString = obj.getString("mac_id");
+                EventBus.getDefault().post(new UIEvent(ACTIVE));
+            } catch (JSONException e) {
+                LOGGER.severe(obj.toString());
+            }
         });
     }
 

@@ -190,6 +190,17 @@ public class WebWorker extends Worker {
         socketIO.emit(SyncSocket.PUT_JSON,jsonObject.toString());
     }
 
+    public void broadcastActive(){
+        AppProps appProps = AppProps.getInstance();
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("mac_id",appProps.getProperty("uuid",""));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        socketIO.emit(SyncSocket.GET_ACTIVE,jsonObject.toString());
+    }
+
     public void refreshJson(){
         socketIO.onStartup();
     }

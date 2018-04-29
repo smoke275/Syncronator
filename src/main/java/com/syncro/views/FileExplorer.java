@@ -13,6 +13,7 @@ import com.syncro.resources.Constants;
 import com.syncro.resources.events.JSONUpdate;
 import com.syncro.resources.events.RegisterLater;
 import com.syncro.resources.events.UIEvent;
+import com.syncro.web.handlers.SyncSocket;
 import com.syncro.workers.WebWorker;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -30,6 +31,8 @@ import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import static java.awt.EventQueue.invokeLater;
@@ -56,6 +59,7 @@ public class FileExplorer extends JFrame {
     private JLabel statusImage;
     private int mode = ACTIVE;
     private Stack<com.syncro.persistence.Folder> navigationStack = null;
+    private MouseListener glassPaneListener = null;
 
     public static FileExplorer getInstance(){
         if(fileExplorer == null) {
@@ -98,7 +102,31 @@ public class FileExplorer extends JFrame {
 
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onMessageFromWebSocket(UIEvent uiEvent) {
-        System.out.println("Yo ::::"+uiEvent.getMessage());
+        if(uiEvent.getMessage().equals(SyncSocket.ACTIVE)){
+            LOGGER.info("Inactive");
+            setInactiveState();
+        }
+    }
+
+    private void setInactiveState(){
+        getGlassPane().setVisible(true);
+        setMode(INACTIVE);
+        glassPaneListener = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                LOGGER.info("Active");
+                setActiveState();
+                WebWorker.getInstance().broadcastActive();
+            }
+        };
+        getGlassPane().addMouseListener(glassPaneListener);
+    }
+
+    private void setActiveState(){
+        getGlassPane().setVisible(false);
+        setMode(ACTIVE);
+        getGlassPane().removeMouseListener(glassPaneListener);
+        invokeLater(() -> initUI());
     }
 
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
@@ -112,11 +140,13 @@ public class FileExplorer extends JFrame {
         invokeLater(() -> {
             LOGGER.info("Current ::"+navigationStack.peek().getName());
             initUI();
+            setInactiveState();
         });
 
     }
 
     public void initUI() {
+
         getContentPane().removeAll();
         getContentPane().revalidate();
         getContentPane().repaint();
@@ -182,7 +212,7 @@ public class FileExplorer extends JFrame {
             });
         }
 
-/*        getGlassPane().setVisible(true);
+        /*getGlassPane().setVisible(true);
         getGlassPane().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -309,11 +339,6 @@ public class FileExplorer extends JFrame {
                 public void mouseClicked(MouseEvent e) {
                     if(e.getClickCount()==2){
                         LOGGER.info(file.getName());
-                        try{
-                            showProgressBar();
-                        } catch (Exception e1){
-                            e1.printStackTrace();
-                        }
 
                         if (Desktop.isDesktopSupported()) {
                             try {
@@ -326,6 +351,11 @@ public class FileExplorer extends JFrame {
                                     File myFile = new File(createLocation);
                                     Desktop.getDesktop().open(myFile);
                                 }else{
+                                    try{
+                                        showProgressBar();
+                                    } catch (Exception e1){
+                                        e1.printStackTrace();
+                                    }
                                     WebWorker.getInstance().requestFile(nodeId,
                                             file.getName(),() ->{
                                                 LOGGER.info("received File");
