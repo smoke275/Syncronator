@@ -1,5 +1,8 @@
 package com.syncro.transfer;
 
+import com.syncro.encryption.CryptoException;
+import com.syncro.encryption.CryptoUtils;
+import com.syncro.resources.Constants;
 import com.syncro.transfer.callbacks.Callback;
 
 import java.io.*;
@@ -25,6 +28,13 @@ public class FileClient{
 
     public void sendFile(String file) throws IOException {
 
+
+        /*try {
+            CryptoUtils.encrypt(Constants.CRYPTO_KEY, new File(file), new File(file));
+        } catch (CryptoException ex) {
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }*/
 
         int fileSize = (int)(new File(file)).length();
 

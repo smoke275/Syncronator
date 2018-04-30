@@ -16,6 +16,7 @@ public class Constants {
     public static final String WS = "ws://";
     public static final int SLEEP_TIME = 100000;
     public static final int SOURCE_PORT = 10080;
+    public static final String CRYPTO_KEY = "syncro";
     public static final int DESTINATION_PORT = 10081;
 
     public static BufferedImage toBufferedImage(Image img)

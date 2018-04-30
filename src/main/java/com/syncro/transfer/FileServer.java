@@ -59,6 +59,13 @@ public class FileServer{
 
         fileOutputStream.close();
 
+        /*try {
+            CryptoUtils.decrypt(Constants.CRYPTO_KEY, new File(file), new File(file));
+        } catch (CryptoException ex) {
+            System.out.println(ex.getMessage());
+            ex.printStackTrace();
+        }*/
+
         if(callback!=null)
             Executors.newCachedThreadPool().execute(callback);
 
