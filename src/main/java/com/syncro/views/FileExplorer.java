@@ -319,72 +319,81 @@ public class FileExplorer extends JFrame {
             });
             getMainPanel().add(folderViewTemp);
         }
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem contextMenu = new JMenuItem("Delete");
+        popup.add(contextMenu);
         for(com.syncro.persistence.Folder folder:folderView.getFolders()){
             FolderView folderViewTemp = FolderView.getNewInstance(folder.getName());
-            if(getMode()!=FileExplorer.INACTIVE) folderViewTemp.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if(e.getClickCount()==2){
-                        drawWith(folder);
+            if(getMode()!=FileExplorer.INACTIVE) {
+                folderViewTemp.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if(e.getClickCount()==2){
+                            drawWith(folder);
+                        }
                     }
-                }
-            });
+                });
+                folderViewTemp.setComponentPopupMenu(popup);
+            }
             getMainPanel().add(folderViewTemp);
         }
 
         for(com.syncro.persistence.File file:folderView.getFiles()){
             FileView fileViewTemp = FileView.getNewInstance(file.getName());
-            if(getMode()!=FileExplorer.INACTIVE) fileViewTemp.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if(e.getClickCount()==2){
-                        LOGGER.info(file.getName());
+            if(getMode()!=FileExplorer.INACTIVE) {
+                fileViewTemp.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if(e.getClickCount()==2){
+                            LOGGER.info(file.getName());
 
-                        if (Desktop.isDesktopSupported()) {
-                            try {
-                                AppProps appProps = AppProps.getInstance();
-                                String nodeId = file.getLocation().split(":")[0];
-                                final String actualLocation = file.getLocation().split(":")[1];
-                                if(nodeId.equals(appProps.getProperty("uuid",""))){
-                                    String createLocation = appProps.getProperty("drive_location","")
-                                            + File.separator + actualLocation;
-                                    File myFile = new File(createLocation);
-                                    Desktop.getDesktop().open(myFile);
-                                }else{
-                                    try{
-                                        showProgressBar();
-                                    } catch (Exception e1){
-                                        e1.printStackTrace();
-                                    }
-                                    WebWorker.getInstance().requestFile(nodeId,
-                                            file.getName(),() ->{
-                                                LOGGER.info("received File");
-                                                String createLocation =
-                                                        appProps.getProperty("drive_location","")
-                                                        + File.separator + actualLocation;
-                                                File myFile = new File(createLocation);
-                                                try {
-                                                    Desktop.getDesktop().open(myFile);
-                                                } catch (IOException e1) {
-                                                    e1.printStackTrace();
-                                                }
-                                                invokeLater(() -> {
-                                                    String newLocation =
-                                                            appProps.getProperty("uuid","")+
-                                                                    ":"+
-                                                            file.getLocation().split(":")[1];
-                                                    file.setLocation(newLocation);
-                                                    saveFileView(rootFolderView,true);
+                            if (Desktop.isDesktopSupported()) {
+                                try {
+                                    AppProps appProps = AppProps.getInstance();
+                                    String nodeId = file.getLocation().split(":")[0];
+                                    final String actualLocation = file.getLocation().split(":")[1];
+                                    if(nodeId.equals(appProps.getProperty("uuid",""))){
+                                        String createLocation = appProps.getProperty("drive_location","")
+                                                + File.separator + actualLocation;
+                                        File myFile = new File(createLocation);
+                                        Desktop.getDesktop().open(myFile);
+                                    }else{
+                                        try{
+                                            showProgressBar();
+                                        } catch (Exception e1){
+                                            e1.printStackTrace();
+                                        }
+                                        WebWorker.getInstance().requestFile(nodeId,
+                                                file.getName(),() ->{
+                                                    LOGGER.info("received File");
+                                                    String createLocation =
+                                                            appProps.getProperty("drive_location","")
+                                                                    + File.separator + actualLocation;
+                                                    File myFile = new File(createLocation);
+                                                    try {
+                                                        Desktop.getDesktop().open(myFile);
+                                                    } catch (IOException e1) {
+                                                        e1.printStackTrace();
+                                                    }
+                                                    invokeLater(() -> {
+                                                        String newLocation =
+                                                                appProps.getProperty("uuid","")+
+                                                                        ":"+
+                                                                        file.getLocation().split(":")[1];
+                                                        file.setLocation(newLocation);
+                                                        saveFileView(rootFolderView,true);
+                                                    });
                                                 });
-                                            });
+                                    }
+                                } catch (IOException ex) {
+                                    // no application registered for PDFs
                                 }
-                            } catch (IOException ex) {
-                                // no application registered for PDFs
                             }
                         }
                     }
-                }
-            });
+                });
+                fileViewTemp.setComponentPopupMenu(popup);
+            }
             getMainPanel().add(fileViewTemp);
         }
         getMainPanel().revalidate();

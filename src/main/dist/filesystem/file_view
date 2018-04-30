@@ -6,6 +6,30 @@
       "location": "621dc41e-663d-4483-9dc4-1e663de48355:Assigment2_TOC_Q2D3.png"
     },
     {
+      "name": "error_graph.png",
+      "location": "c18e5f25-baef-4760-8e5f-25baefb76078:error_graph.png"
+    },
+    {
+      "name": "inactive_img.png",
+      "location": "b2159c54-1a59-42b5-959c-541a59c2b52d:inactive_img.png"
+    },
+    {
+      "name": "active_img.png",
+      "location": "b2159c54-1a59-42b5-959c-541a59c2b52d:active_img.png"
+    },
+    {
+      "name": "Assignment1_Q3_Diagram.png",
+      "location": "6b832a78-30b9-4737-832a-7830b9c737cb:Assignment1_Q3_Diagram.png"
+    },
+    {
+      "name": "blue-1294461_640.png",
+      "location": "b2159c54-1a59-42b5-959c-541a59c2b52d:blue-1294461_640.png"
+    },
+    {
+      "name": "Assignment5_2.png",
+      "location": "6b832a78-30b9-4737-832a-7830b9c737cb:Assignment5_2.png"
+    },
+    {
       "name": "Capture_2.PNG",
       "location": "aca62e4f-86df-47bc-a62e-4f86df37bc7d:Capture_2.PNG"
     },
@@ -22,5 +46,11 @@
       "location": "b2159c54-1a59-42b5-959c-541a59c2b52d:Capture_3.PNG"
     }
   ],
-  "folders": []
+  "folders": [
+    {
+      "name": "Hello",
+      "files": [],
+      "folders": []
+    }
+  ]
 }
