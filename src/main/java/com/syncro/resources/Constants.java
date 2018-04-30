@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+/**
+ * Class for storing constants to thread pool and static functions
+ */
 public class Constants {
     private static final Logger LOGGER = Logger.getLogger(Constants.class.getName());
     public static final String HTTP = "http://";

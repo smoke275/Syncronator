@@ -3,6 +3,9 @@ package com.syncro.transfer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Data class for retrofit and GSON
+ */
 public class Data {
 
     @SerializedName("to")

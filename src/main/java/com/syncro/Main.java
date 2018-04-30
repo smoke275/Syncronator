@@ -1,17 +1,11 @@
 package com.syncro;
 
-import com.syncro.resources.Constants;
 import com.syncro.views.ApplicationSystemTray;
 import com.syncro.views.FileExplorer;
-import com.syncro.views.FolderView;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.net.URL;
-import java.nio.channels.FileLock;
-import java.util.Scanner;
-
+/**
+ * Entry class
+ */
 public class Main {
     public static void main(String args[]){
         System.out.println("Initiating...");

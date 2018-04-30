@@ -2,7 +2,9 @@ package com.syncro.transfer;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
-
+/**
+ * GSON class for retrieving json
+ */
 public class MessageGetJson {
 
     public static final String EVENT = "get_json";

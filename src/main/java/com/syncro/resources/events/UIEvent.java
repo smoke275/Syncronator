@@ -1,5 +1,8 @@
 package com.syncro.resources.events;
 
+/**
+ * Event class for EventBus for UI update events
+ */
 public class UIEvent {
     private String message;
 

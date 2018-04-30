@@ -4,6 +4,9 @@ package com.syncro.persistence;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Serialization class for GSON and retrofit
+ */
 public class File {
 
     @SerializedName("name")

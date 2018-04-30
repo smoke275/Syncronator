@@ -3,7 +3,9 @@ package com.syncro.views;
 import java.awt.*;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
-
+/**
+ * class for wrapping elements in the UI
+ */
 public class WrapLayout extends FlowLayout
 {
     private Dimension preferredLayoutSize;

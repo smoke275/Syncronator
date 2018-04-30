@@ -11,6 +11,9 @@ import java.net.URL;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * Application Tray class for minimization
+ */
 public class ApplicationSystemTray {
 
     TrayIcon processTrayIcon = null;

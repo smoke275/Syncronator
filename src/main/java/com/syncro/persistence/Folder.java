@@ -6,6 +6,9 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+/**
+ * Serialization library for GSON and Retrofit
+ */
 public class Folder {
 
     @SerializedName("name")

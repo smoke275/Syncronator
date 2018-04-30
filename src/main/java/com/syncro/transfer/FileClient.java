@@ -1,15 +1,17 @@
 package com.syncro.transfer;
 
-import com.syncro.encryption.CryptoException;
-import com.syncro.encryption.CryptoUtils;
-import com.syncro.resources.Constants;
 import com.syncro.transfer.callbacks.Callback;
 
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
-
+/**
+ * Class for file transfer from sender
+ */
 public class FileClient{
     private static final Logger LOGGER = Logger.getLogger(FileClient.class.getName());
     private Socket socket;

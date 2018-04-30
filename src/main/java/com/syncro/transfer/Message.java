@@ -3,6 +3,9 @@ package com.syncro.transfer;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * GSON class for Message
+ */
 public class Message {
 
     @SerializedName("type")

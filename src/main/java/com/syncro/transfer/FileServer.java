@@ -9,6 +9,9 @@ import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+/**
+ * Class for file transfer to receiver
+ */
 public class FileServer{
     private static final Logger LOGGER = Logger.getLogger(FileServer.class.getName());
     private Socket ss;

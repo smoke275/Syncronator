@@ -10,6 +10,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 
+/**
+ * class for FileView in the UI
+ */
 public class FileView extends JLabel {
     private static BufferedImage imageIcon;
     private static BufferedImage disabledImageIcon;

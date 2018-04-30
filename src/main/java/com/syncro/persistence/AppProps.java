@@ -8,6 +8,9 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+/**
+ * Class for accessing all the properties
+ */
 public class AppProps extends Properties{
     private static final Logger LOGGER = Logger.getLogger(AppProps.class.getName());
     private static AppProps appProps;

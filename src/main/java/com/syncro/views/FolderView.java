@@ -13,7 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.logging.Logger;
-
+/**
+ * class for FolderView in the UI
+ */
 public class FolderView extends JLabel {
     private static final Logger LOGGER = Logger.getLogger(FolderView.class.getName());
     public final static String ROOT = "root";

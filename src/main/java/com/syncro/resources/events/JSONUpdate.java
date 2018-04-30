@@ -1,5 +1,8 @@
 package com.syncro.resources.events;
 
+/**
+ * Event class for EventBus for JSON events
+ */
 public class JSONUpdate {
     private String json;
 

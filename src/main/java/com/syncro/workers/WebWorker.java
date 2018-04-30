@@ -33,6 +33,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+/**
+ * class for taking care of all the http connections
+ */
 public class WebWorker extends Worker {
 
     private static final Logger LOGGER = Logger.getLogger(WebWorker.class.getName());
